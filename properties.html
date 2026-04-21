@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hus Index</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="css/properties.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="top-navbar">
+            <ul>
+                <li><a href="husindex.html">Home</a></li>
+                <li><a href="sign-in.html">Sign In</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="sell-property.html">Sell Property</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="favorite.html">Favorite</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <div class="properties-header">
+                <h2>Available properties</h2>
+
+                <div class="sort-box">
+                    <label for="sort">Sort by:</label>
+                    <select id="sort" v-model="sortOption">
+                        <option value="default">Choose</option>
+                        <option value="priceLowHigh">Price: Low to High</option>
+                        <option value="priceHighLow">Price: High to Low</option>
+                        <option value="sizeLowHigh">Size</option>
+                    </select>
+                </div>
+            </div>
+
+            <property-filter
+                v-model:zip-filter="zipFilter"
+                v-model:min-bedrooms="minBedrooms">
+            </property-filter>
+
+            <property-table :properties="sortedProperties"></property-table>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-cont">
+                <p>@ Hus Index 2026</p>
+
+                <div class="footer-links">
+                    <a href="about.html">About</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="about.html">Privacy Policy And GDPR</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+    const PropertyFilter = {
+        props: {
+            zipFilter: String,
+            minBedrooms: Number
+        },
+        emits: ['update:zipFilter', 'update:minBedrooms'],
+        template: `
+            <div class="filter-box">
+                <label for="zipFilter">Filter by zip code:</label>
+                <input
+                    id="zipFilter"
+                    type="text"
+                    :value="zipFilter"
+                    @input="$emit('update:zipFilter', $event.target.value)"
+                    placeholder="Enter zip code"
+                >
+
+                <label for="minBedrooms">Minimum bedrooms:</label>
+                <select
+                    id="minBedrooms"
+                    :value="minBedrooms"
+                    @change="$emit('update:minBedrooms', Number($event.target.value))"
+                >
+                    <option :value="0">Any</option>
+                    <option :value="1">1+</option>
+                    <option :value="2">2+</option>
+                    <option :value="3">3+</option>
+                    <option :value="4">4+</option>
+                    <option :value="5">5+</option>
+                </select>
+            </div>
+        `
+    };
+
+    const PropertyTable = {
+        props: {
+            properties: Array
+        },
+        methods: {
+            formatPrice(price) {
+                return Number(price).toLocaleString('sv-SE') + ' kr';
+            }
+        },
+        template: `
+            <div class="table-wrapper">
+                <table class="properties-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Zip Code</th>
+                            <th>Price</th>
+                            <th>Bedrooms</th>
+                            <th>Bathrooms</th>
+                            <th>Living Area (m²)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr v-if="properties.length === 0">
+                            <td colspan="6">No properties match your filters.</td>
+                        </tr>
+
+                        <tr v-for="property in properties" :key="property.SalesID">
+                            <td>
+                                <img
+                                    :src="'houseImages/256x256/' + property.Image + '.jpg'"
+                                    :alt="'House in zip code ' + property.zip_code"
+                                >
+                            </td>
+                            <td>{{ property.zip_code }}</td>
+                            <td>{{ formatPrice(property.AdjSalePrice) }}</td>
+                            <td>{{ property.Bedrooms }}</td>
+                            <td>{{ property.Bathrooms }}</td>
+                            <td>{{ property.SqMTotLiving }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+
+    const app = Vue.createApp({
+        components: {
+            'property-filter': PropertyFilter,
+            'property-table': PropertyTable
+        },
+        data() {
+            return {
+                sortOption: 'default',
+                zipFilter: '',
+                minBedrooms: 0,
+                properties: []
+            };
+        },
+
+        mounted() {
+            fetch("http://127.0.0.1:5000/api/properties")
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched data:", data);
+                    this.properties = data;
+                    console.log("Properties in Vue:", this.properties);
+                })
+                .catch(error => console.error("Fetch error:", error));
+        },
+
+        computed: {
+            filteredAndSortedProperties() {
+                let result = this.properties.filter(property => {
+                    const matchesZip = String(property.zip_code).includes(this.zipFilter.trim());
+                    const matchesBedrooms = Number(property.Bedrooms) >= this.minBedrooms;
+                    return matchesZip && matchesBedrooms;
+                });
+
+                if (this.sortOption === 'priceLowHigh') {
+                    result.sort((a, b) => Number(a.AdjSalePrice) - Number(b.AdjSalePrice));
+                } else if (this.sortOption === 'priceHighLow') {
+                    result.sort((a, b) => Number(b.AdjSalePrice) - Number(a.AdjSalePrice));
+                } else if (this.sortOption === 'sizeLowHigh') {
+                    result.sort((a, b) => Number(a.SqMTotLiving) - Number(b.SqMTotLiving));
+                }
+
+                return result;
+            }
+        }
+    });
+
+    app.mount('#app');
+    </script>
+</body>
+</html>

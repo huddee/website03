@@ -1,0 +1,45 @@
+.about-main {
+    background-color: whitesmoke;
+    padding: 60px 20px;
+    flex: 1;
+}
+
+
+.about-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+.about-container h1 {
+    color: #1f4f82;
+    margin-bottom: 20px;
+    font-size: 36px;
+    text-align: left;
+}
+
+
+.about-container p {
+    font-size: 18px;
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .about-container {
+        padding: 25px;
+    }
+
+    .about-container h1 {
+        font-size: 28px;
+    }
+
+    .about-container p {
+        font-size: 16px;
+    }
+}
