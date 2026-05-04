@@ -55,6 +55,19 @@
                 :favorites="favorites"
                 @toggle-favorite="toggleFavorite">
             </property-table>
+
+            <div class="pagination">
+                <button @click="previousPage" :disabled="currentPage === 1">
+                    Previous
+                </button>
+
+                <span>Page {{ currentPage }} of {{ totalPages }}</span>
+
+                <button @click="nextPage" :disabled="currentPage === totalPages">
+                    Next
+                </button>
+            </div>
+
         </main>
 
         <footer class="footer">
@@ -236,11 +249,50 @@
                 maxPrice: Infinity,
                 minArea: 0,
                 properties: [],
-                favorites: []
+                favorites: [],
+
+                currentPage:1,
+                totalPages:1,
+                perPage: 10
             };
         },
 
         methods: {
+
+            fetchProperties() {
+            const url = `http://127.0.0.1:5000/api/properties?page=${this.currentPage}&per_page=${this.perPage}`;
+
+            fetch(url)
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched data:", data);
+
+                    this.properties = data.properties;
+                    this.currentPage = data.page;
+                    this.totalPages = data.total_pages;
+
+                    console.log("Properties in Vue:", this.properties);
+                })
+                .catch(error => console.error("Fetch error:", error));
+            },
+
+            nextPage() {
+                if (this.currentPage < this.totalPages) {
+                    this.currentPage++;
+                    this.fetchProperties();
+                }
+            },
+
+            previousPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.fetchProperties();
+                }
+            },
+
             toggleFavorite(property) {
                 const exists = this.favorites.find(p => p.SalesID === property.SalesID);
 
@@ -265,17 +317,7 @@
             this.minArea = Number(params.get('minArea')) || 0;
             this.favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-            fetch("http://127.0.0.1:5000/api/properties")
-                .then(response => {
-                    console.log("Response status:", response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Fetched data:", data);
-                    this.properties = data;
-                    console.log("Properties in Vue:", this.properties);
-                })
-                .catch(error => console.error("Fetch error:", error));
+            this.fetchProperties();
         },
 
         computed: {

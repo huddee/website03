@@ -35,7 +35,38 @@ def get_properties():
     zip_code = request.args.get("zip_code")
     min_bedrooms = request.args.get("min_bedrooms", type=int)
 
-    query = """
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=12, type=int)
+
+    if page < 1:
+        page = 1
+
+    if per_page < 1:
+        per_page = 12
+
+    if per_page > 15:
+        per_page = 15
+
+    offset = (page - 1) * per_page
+
+    base_query = """
+        FROM HouseSalesSeattle
+        WHERE 1=1
+    """
+
+    params = []
+
+    if zip_code:
+        base_query += " AND zip_code = ?"
+        params.append(zip_code)
+
+    if min_bedrooms is not None:
+        base_query += " AND Bedrooms >= ?"
+        params.append(min_bedrooms)
+
+    count_query = "SELECT COUNT(*) " + base_query
+
+    data_query = """
         SELECT 
             SalesID,
             Image,
@@ -44,26 +75,19 @@ def get_properties():
             Bedrooms,
             Bathrooms,
             SqMTotLiving
-        FROM HouseSalesSeattle
-        WHERE 1=1
+    """ + base_query + """
+        ORDER BY SalesID
+        LIMIT ? OFFSET ?
     """
 
-    params = []
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()[0]
 
-    if zip_code:
-        query += " AND zip_code = ?"
-        params.append(zip_code)
-
-    if min_bedrooms is not None:
-        query += " AND Bedrooms >= ?"
-        params.append(min_bedrooms)
-
-    query += " LIMIT 380"
-
-    cursor.execute(query, params)
+    cursor.execute(data_query, params + [per_page, offset])
     rows = cursor.fetchall()
 
     properties = []
+
     for row in rows:
         properties.append({
             "SalesID": row[0],
@@ -75,7 +99,13 @@ def get_properties():
             "SqMTotLiving": row[6]
         })
 
-    return jsonify(properties)
+    return jsonify({
+        "properties": properties,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": (total + per_page - 1) // per_page
+    })
 
 @app.route("/api/bids")
 def get_bids():

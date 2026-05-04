@@ -1,82 +1,107 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f7f8;
-    color: #1f2933;
+main {
+    padding: 40px 20px;
+    background-color: whitesmoke;
 }
 
 #app {
     max-width: 1000px;
-    margin: 40px auto;
-    padding: 20px;
+    margin: 0 auto;
 }
 
-h1 {
+.content {
+    background-color: whitesmoke;
+    padding: 30px;
+    border-radius: 18px;
+}
+
+.content h1 {
     text-align: center;
-    color: #0f766e;
+    color: #333;
     margin-bottom: 30px;
 }
 
-h2 {
-    color: #1f2933;
-    margin-top: 30px;
+.content h2 {
+    color: #333;
+    margin-top: 35px;
+    margin-bottom: 15px;
 }
 
 form {
-    background: white;
-    padding: 25px;
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
-    justify-content: center;
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
 }
 
-input {
-    padding: 12px;
-    border: 1px solid #cbd5e1;
+form input {
+    flex: 1;
+    min-width: 220px;
+    padding: 12px 15px;
+    border: 1px solid var(--khaki);
     border-radius: 8px;
     font-size: 16px;
-    min-width: 220px;
 }
 
-input:focus {
+form input:focus {
     outline: none;
-    border-color: #0f766e;
+    border-color: var(--teal-muted);
 }
 
-button {
-    padding: 12px 22px;
-    background: #0f766e;
-    color: white;
+form button {
+    padding: 12px 25px;
+    background-color: var(--sky);
+    color: #333;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
     cursor: pointer;
+    font-size: 16px;
 }
 
-button:hover {
-    background: #115e59;
+form button:hover {
+    background-color: var(--teal-muted);
+    color: white;
 }
 
-ul {
+.content ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
-li {
-    background: white;
-    margin-bottom: 10px;
+.content li {
+    background-color: white;
     padding: 14px 18px;
+    margin-bottom: 10px;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 5px solid var(--teal-muted);
 }
 
 canvas {
-    background: white;
+    background-color: white;
     padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    margin-top: 15px;
+    border-radius: 15px;
+    max-height: 420px;
+}
+
+
+
+@media (max-width: 768px) {
+    main {
+        padding: 25px 12px;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    form {
+        flex-direction: column;
+    }
+
+    form input,
+    form button {
+        width: 100%;
+    }
 }

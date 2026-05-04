@@ -16,7 +16,6 @@
 </head>
 
 <body>
-<div id="app">
 
     
     <nav class="top-navbar">
@@ -27,7 +26,6 @@
         </ul>
     </nav>
 
-    
     <nav class="navbar">
         <ul>
             <li><a href="properties.html">Properties</a></li>
@@ -39,86 +37,100 @@
     </nav>
 
     
-    <div class="content">
-        <h1>Live Bidding</h1>
+    <main>
+        <div id="app">
+            <div class="content">
+                <h1>Live Bidding</h1>
 
-        <form @submit.prevent="sendBid">
-            <input v-model="name" placeholder="Your name" required>
-            <input v-model="amount" type="number" placeholder="Bid amount" required>
-            <button type="submit">Place bid</button>
-        </form>
+                <form @submit.prevent="sendBid">
+                    <input v-model="name" placeholder="Your name" required>
+                    <input v-model="amount" type="number" placeholder="Bid amount" required>
+                    <button type="submit">Place bid</button>
+                </form>
 
-        <h2>Current Bids</h2>
-        <ul>
-            <li v-for="bid in bids">
-                {{ bid.name }}: {{ bid.amount }} kr
-            </li>
-        </ul>
+                <h2>Current Bids</h2>
+                <ul>
+                    <li v-for="bid in bids" :key="bid.id">
+                        {{ bid.name }}: {{ bid.amount }} kr
+                    </li>
+                </ul>
 
-        <h2>Live Graph</h2>
-        <canvas id="chart"></canvas>
-    </div>
+                <h2>Live Graph</h2>
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+    </main>
 
-</div>
 
-<script>
-const app = Vue.createApp({
-    data() {
-        return {
-            socket: null,
-            bids: [],
-            name: "",
-            amount: "",
-            chart: null
-        };
-    },
+    <footer class="footer">
+        <div class="footer-cont">
+            <p>@ Hus Index 2026</p>
 
-    mounted() {
-        
-        this.socket = io("http://127.0.0.1:5000");
+            <div class="footer-links">
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="about.html">Privacy Policy And GDPR</a>
+            </div>
+        </div>
+    </footer>
 
-        // Receive live updates
-        this.socket.on("update_bids", (data) => {
-            this.bids = data;
-            this.updateChart();
-        });
-    },
-
-    methods: {
-        sendBid() {
-            this.socket.emit("new_bid", {
-                name: this.name,
-                amount: this.amount
-            });
-
-            this.name = "";
-            this.amount = "";
+    
+    <script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                socket: null,
+                bids: [],
+                name: "",
+                amount: "",
+                chart: null
+            };
         },
 
-        updateChart() {
-            const labels = this.bids.map((_, i) => "Bid " + (i + 1));
-            const values = this.bids.map(b => b.amount);
+        mounted() {
+            this.socket = io("http://127.0.0.1:5000");
 
-            if (this.chart) {
-                this.chart.destroy();
-            }
-
-            this.chart = new Chart(document.getElementById("chart"), {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Bid Amount",
-                        data: values
-                    }]
-                }
+            this.socket.on("update_bids", (data) => {
+                this.bids = data;
+                this.updateChart();
             });
-        }
-    }
-});
+        },
 
-app.mount("#app");
-</script>
+        methods: {
+            sendBid() {
+                this.socket.emit("new_bid", {
+                    name: this.name,
+                    amount: this.amount
+                });
+
+                this.name = "";
+                this.amount = "";
+            },
+
+            updateChart() {
+                const labels = this.bids.map((_, i) => "Bid " + (i + 1));
+                const values = this.bids.map(b => b.amount);
+
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+
+                this.chart = new Chart(document.getElementById("chart"), {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Bid Amount",
+                            data: values
+                        }]
+                    }
+                });
+            }
+        }
+    });
+
+    app.mount("#app");
+    </script>
 
 </body>
 </html>
