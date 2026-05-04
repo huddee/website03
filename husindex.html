@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hus Index</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="top-navbar">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="sign-in.html">Sign In</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="sell-property.html">Sell Property</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="favorite.html">Favorite</a></li>
+                <li><a href="live-bidding.html">Live Bidding</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="hero">
+                <div class="hero-text">
+                    <h1>Find the perfect place with space for both living and working</h1>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" v-model="location" placeholder="Location (zip code)" @keyup.enter="goToProperties">
+
+                    <select v-model="minArea">
+                        <option :value="0">Area</option>
+                        <option :value="50">50+ m²</option>
+                        <option :value="100">100+ m²</option>
+                        <option :value="150">150+ m²</option>
+                        <option :value="200">200+ m²</option>
+                    </select>
+
+                    <select v-model="priceRange">
+                        <option value="">Price range</option>
+                        <option value="100000-600000">100k - 600k</option>
+                        <option value="600000-1000000">600k - 1M</option>
+                        <option value="1000000-3000000">1M - 3M</option>
+                        <option value="3000000-5000000">3M - 5M</option>
+                    </select>
+
+                    <select v-model="minRooms">
+                        <option :value="0">Rooms</option>
+                        <option :value="2">2+</option>
+                        <option :value="3">3+</option>
+                        <option :value="4">4+</option>
+                        <option :value="5">5+</option>
+                    </select>
+
+                    <button @click="goToProperties">Search</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-cont">
+                <p>@ Hus Index 2026</p>
+
+                <div class="footer-links">
+                    <a href="about.html">About</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="about.html">Privacy Policy And GDPR</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    location: '',
+                    priceRange: '',
+                    minRooms: 0,
+                    minArea: 0
+                };
+            },
+            methods: {
+                goToProperties() {
+                    const params = new URLSearchParams();
+
+                    if (this.location.trim() !== '') {
+                        params.set('zip', this.location.trim());
+                    }
+
+                    if (this.minRooms > 0) {
+                        params.set('minBedrooms', this.minRooms);
+                    }
+
+                    if (this.minArea > 0) {
+                        params.set('minArea', this.minArea);
+                    }
+
+                    if (this.priceRange !== '') {
+                        const [minPrice, maxPrice] = this.priceRange.split('-');
+                        params.set('minPrice', minPrice);
+                        params.set('maxPrice', maxPrice);
+                    }
+
+                    window.location.href = 'properties.html?' + params.toString();
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>

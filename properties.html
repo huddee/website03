@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hus Index</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="css/properties.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="top-navbar">
+            <ul>
+                <li><a href="husindex.html">Home</a></li>
+                <li><a href="sign-in.html">Sign In</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="sell-property.html">Sell Property</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="favorite.html">Favorite</a></li>
+                <li><a href="live-bidding.html">Live Bidding</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <div class="properties-header">
+                <h2>Available properties</h2>
+
+                <div class="sort-box">
+                    <label for="sort">Sort by:</label>
+                    <select id="sort" v-model="sortOption">
+                        <option value="default">Choose</option>
+                        <option value="priceLowHigh">Price: Low to High</option>
+                        <option value="priceHighLow">Price: High to Low</option>
+                        <option value="sizeLowHigh">Size</option>
+                    </select>
+                </div>
+            </div>
+
+            <property-filter
+                v-model:zip-filter="zipFilter"
+                v-model:min-bedrooms="minBedrooms"
+                v-model:min-price="minPrice"
+                v-model:max-price="maxPrice"
+                v-model:min-area="minArea">
+            </property-filter>
+
+            <property-table 
+                :properties="filteredAndSortedProperties"
+                :favorites="favorites"
+                @toggle-favorite="toggleFavorite">
+            </property-table>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-cont">
+                <p>@ Hus Index 2026</p>
+
+                <div class="footer-links">
+                    <a href="about.html">About</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="about.html">Privacy Policy And GDPR</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+    const PropertyFilter = {
+        props: {
+            zipFilter: String,
+            minBedrooms: Number,
+            minPrice: Number,
+            maxPrice: Number,
+            minArea: Number
+        },
+        emits: [
+            'update:zipFilter',
+            'update:minBedrooms',
+            'update:minPrice',
+            'update:maxPrice',
+            'update:minArea'
+        ],
+        template: `
+            <div class="filter-box">
+                <label for="zipFilter">Filter by zip code:</label>
+                <input
+                    id="zipFilter"
+                    type="text"
+                    :value="zipFilter"
+                    @input="$emit('update:zipFilter', $event.target.value)"
+                    placeholder="Enter zip code"
+                >
+
+                <label for="minBedrooms">Minimum bedrooms:</label>
+                <select
+                    id="minBedrooms"
+                    :value="minBedrooms"
+                    @change="$emit('update:minBedrooms', Number($event.target.value))"
+                >
+                    <option :value="0">Any</option>
+                    <option :value="1">1+</option>
+                    <option :value="2">2+</option>
+                    <option :value="3">3+</option>
+                    <option :value="4">4+</option>
+                    <option :value="5">5+</option>
+                </select>
+
+                <label for="priceRange">Price range:</label>
+                <select
+                    id="priceRange"
+                    @change="
+                        const value = $event.target.value;
+                        if (value === '') {
+                            $emit('update:minPrice', 0);
+                            $emit('update:maxPrice', Infinity);
+                        } else {
+                            const [min, max] = value.split('-');
+                            $emit('update:minPrice', Number(min));
+                            $emit('update:maxPrice', Number(max));
+                        }
+                    "
+                >
+                    <option value="">Any</option>
+                    <option value="100000-600000">100k - 600k</option>
+                    <option value="600000-1000000">600k - 1M</option>
+                    <option value="1000000-3000000">1M - 3M</option>
+                    <option value="3000000-5000000">3M - 5M</option>
+                </select>
+
+                <label for="minArea">Minimum area:</label>
+                <select
+                    id="minArea"
+                    :value="minArea"
+                    @change="$emit('update:minArea', Number($event.target.value))"
+                >
+                    <option :value="0">Any</option>
+                    <option :value="50">50+ m²</option>
+                    <option :value="100">100+ m²</option>
+                    <option :value="150">150+ m²</option>
+                    <option :value="200">200+ m²</option>
+                </select>
+            </div>
+        `
+    };
+
+    const PropertyTable = {
+        props: {
+            properties:{
+                type: Array,
+                default: () => []
+            },
+            favorites: Array
+        },
+        emits: ['toggle-favorite'],
+
+        methods: {
+            formatPrice(price) {
+                return Number(price).toLocaleString('sv-SE') + ' kr';
+            },
+            isFavorite(property) {
+                return this.favorites.some(p => p.SalesID === property.SalesID);
+            }
+        },
+        template: `
+            <div class="table-wrapper">
+                <table class="properties-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Zip Code</th>
+                            <th>Price</th>
+                            <th>Bedrooms</th>
+                            <th>Bathrooms</th>
+                            <th>Living Area (m²)</th>
+                            <th>Favorite</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr v-if="properties.length === 0">
+                            <td colspan="6">No properties match your filters.</td>
+                        </tr>
+
+                        <tr v-for="property in properties" :key="property.SalesID">
+                            <td>
+                                <img
+                                    :src="'houseImages/256x256/' + property.Image + '.jpg'"
+                                    :alt="'House in zip code ' + property.zip_code"
+                                >
+                            </td>
+                            <td>{{ property.zip_code }}</td>
+                            <td>{{ formatPrice(property.AdjSalePrice) }}</td>
+                            <td>{{ property.Bedrooms }}</td>
+                            <td>{{ property.Bathrooms }}</td>
+                            <td>{{ property.SqMTotLiving }}</td>
+                            <td>
+                                <span 
+                                    class="heart-icon"
+                                    :class="{ active: isFavorite(property) }"
+                                    @click="$emit('toggle-favorite', property)"
+                                >
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path 
+                                            d="M12 21s-6-4.35-9-7.5S0 6.5 3 4.5 8.5 4 12 7c3.5-3 6.5-4 9-2s3 6 0 9S12 21 12 21z"
+
+                                        />
+                                    </svg>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+
+    const app = Vue.createApp({
+        components: {
+            'property-filter': PropertyFilter,
+            'property-table': PropertyTable
+        },
+        data() {
+            return {
+                sortOption: 'default',
+                zipFilter: '',
+                minBedrooms: 0,
+                minPrice: 0,
+                maxPrice: Infinity,
+                minArea: 0,
+                properties: [],
+                favorites: []
+            };
+        },
+
+        methods: {
+            toggleFavorite(property) {
+                const exists = this.favorites.find(p => p.SalesID === property.SalesID);
+
+                if (exists) {
+                    this.favorites = this.favorites.filter(p => p.SalesID !== property.SalesID);
+                } else {
+                    this.favorites.push(property);
+                }
+
+                localStorage.setItem('favorites', JSON.stringify(this.favorites));
+            }
+        },
+
+        mounted() {
+
+            const params = new URLSearchParams(window.location.search);
+
+            this.zipFilter = params.get('zip') || '';
+            this.minBedrooms = Number(params.get('minBedrooms')) || 0;
+            this.minPrice = Number(params.get('minPrice')) || 0;
+            this.maxPrice = Number(params.get('maxPrice')) || Infinity;
+            this.minArea = Number(params.get('minArea')) || 0;
+            this.favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+            fetch("http://127.0.0.1:5000/api/properties")
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched data:", data);
+                    this.properties = data;
+                    console.log("Properties in Vue:", this.properties);
+                })
+                .catch(error => console.error("Fetch error:", error));
+        },
+
+        computed: {
+            filteredAndSortedProperties() {
+                let result = this.properties.filter(property => {
+                    const matchesZip = String(property.zip_code).includes(this.zipFilter.trim());
+                    const matchesBedrooms = Number(property.Bedrooms) >= this.minBedrooms;
+                    const price = Number(property.AdjSalePrice);
+                    const matchesPrice = price >= this.minPrice && price <= this.maxPrice;
+                    const matchesArea = Number(property.SqMTotLiving) >= this.minArea;
+
+                    return matchesZip && matchesBedrooms && matchesPrice && matchesArea;
+                });
+
+                if (this.sortOption === 'priceLowHigh') {
+                    result.sort((a, b) => Number(a.AdjSalePrice) - Number(b.AdjSalePrice));
+                } else if (this.sortOption === 'priceHighLow') {
+                    result.sort((a, b) => Number(b.AdjSalePrice) - Number(a.AdjSalePrice));
+                } else if (this.sortOption === 'sizeLowHigh') {
+                    result.sort((a, b) => Number(a.SqMTotLiving) - Number(b.SqMTotLiving));
+                }
+
+                return result;
+            }
+        }
+    });
+
+    app.mount('#app');
+    </script>
+</body>
+</html>

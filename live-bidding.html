@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bidding - Hus Index</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/live-bidding.css">
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+
+    <!-- TOP NAVBAR -->
+    <nav class="top-navbar">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="sign-in.html">Sign In</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- MAIN NAVBAR -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="properties.html">Properties</a></li>
+            <li><a href="sell-property.html">Sell Property</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="favorite.html">Favorite</a></li>
+            <li><a href="live-bidding.html" class="active">Live Bidding</a></li>
+        </ul>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="content">
+        <h1>Live Bidding</h1>
+
+        <form @submit.prevent="sendBid">
+            <input v-model="name" placeholder="Your name" required>
+            <input v-model="amount" type="number" placeholder="Bid amount" required>
+            <button type="submit">Place bid</button>
+        </form>
+
+        <h2>Current Bids</h2>
+        <ul>
+            <li v-for="bid in bids">
+                {{ bid.name }}: {{ bid.amount }} kr
+            </li>
+        </ul>
+
+        <h2>Live Graph</h2>
+        <canvas id="chart"></canvas>
+    </div>
+
+</div>
+
+<script>
+const app = Vue.createApp({
+    data() {
+        return {
+            socket: null,
+            bids: [],
+            name: "",
+            amount: "",
+            chart: null
+        };
+    },
+
+    mounted() {
+        // Connect to Flask backend
+        this.socket = io("http://127.0.0.1:5000");
+
+        // Receive live updates
+        this.socket.on("update_bids", (data) => {
+            this.bids = data;
+            this.updateChart();
+        });
+    },
+
+    methods: {
+        sendBid() {
+            this.socket.emit("new_bid", {
+                name: this.name,
+                amount: this.amount
+            });
+
+            this.name = "";
+            this.amount = "";
+        },
+
+        updateChart() {
+            const labels = this.bids.map((_, i) => "Bid " + (i + 1));
+            const values = this.bids.map(b => b.amount);
+
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
+            this.chart = new Chart(document.getElementById("chart"), {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Bid Amount",
+                        data: values
+                    }]
+                }
+            });
+        }
+    }
+});
+
+app.mount("#app");
+</script>
+
+</body>
+</html>

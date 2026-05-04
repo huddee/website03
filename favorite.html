@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hus Index</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="css/favorite.css">
+</head>
+<body>
+    <nav class="top-navbar">
+        <ul>
+            <li><a href="husindex.html">Home</a></li>
+            <li><a href="sign-in.html">Sign In</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    <nav class="navbar">
+        <ul>
+            
+            <li><a href="properties.html">Properties</a></li>
+            <li><a href="sell-property.html">Sell Property</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="favorite.html">Favorite</a></li>
+            <li><a href="live-bidding.html">Live Bidding</a></li>
+        </ul>
+
+    </nav>
+
+    <main>
+        <div id="app" class="favorite-page">
+            <h2>Favorite Properties</h2>
+
+            <p v-if="favorites.length === 0">No favorites added yet.</p>
+
+            <div class="favorites-container" v-else>
+                <div v-for="property in favorites" :key="property.SalesID" class="favorite-card">
+                    <img
+                        :src="'houseImages/256x256/' + property.Image + '.jpg'"
+                        :alt="'House in zip code ' + property.zip_code"
+                    >
+
+                    <p><strong>Zip code:</strong> {{ property.zip_code }}</p>
+                    <p><strong>Price:</strong> {{ formatPrice(property.AdjSalePrice) }}</p>
+                    <p><strong>Bedrooms:</strong> {{ property.Bedrooms }}</p>
+                    <p><strong>Bathrooms:</strong> {{ property.Bathrooms }}</p>
+                    <p><strong>Living area:</strong> {{ property.SqMTotLiving }} m²</p>
+
+                    <button class="remove-favorite-btn" @click="removeFavorite(property.SalesID)">
+                        Remove favorite
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-cont">
+            <p>@ Hus Index 2026</p>
+
+            <div class="footer-links">
+                <a href="about.html">About</a>
+                <a href="contact">Contact</a>
+                <a href="about.html">Privacy Policy And GDPR</a>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                favorites: []
+            };
+        },
+        mounted() {
+            this.favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        },
+        methods: {
+            formatPrice(price) {
+                return Number(price).toLocaleString('sv-SE') + ' kr';
+            },
+            removeFavorite(salesID) {
+                this.favorites = this.favorites.filter(property => property.SalesID !== salesID);
+                localStorage.setItem('favorites', JSON.stringify(this.favorites));
+            }
+        }
+    });
+
+    app.mount('#app');
+    </script>
+
+</body>
+</html>
