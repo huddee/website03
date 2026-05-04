@@ -1,4 +1,5 @@
 import os
+import time
 import sqlite3
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -112,6 +113,24 @@ def get_bids():
     return jsonify(bids)
 
 
+@app.route("/api/price-per-zip")
+def price_per_zip():
+    cursor.execute("""
+        SELECT zip_code, AVG(AdjSalePrice)
+        FROM HouseSalesSeattle
+        GROUP BY zip_code
+        LIMIT 10
+    """)
+
+    rows = cursor.fetchall()
+
+    data = {
+        "labels": [row[0] for row in rows],
+        "values": [row[1] for row in rows]
+    }
+
+    return jsonify(data)
+
 @socketio.on("connect")
 def handle_connect():
     emit("update_bids", bids)
@@ -125,7 +144,8 @@ def handle_new_bid(data):
     if name and amount:
         bid = {
             "name": name,
-            "amount": int(amount)
+            "amount": int(amount),
+            "time": time.time()
         }
 
         bids.append(bid)

@@ -33,6 +33,7 @@
             <li><a href="contact.html">Contact</a></li>
             <li><a href="favorite.html">Favorite</a></li>
             <li><a href="live-bidding.html" class="active">Live Bidding</a></li>
+            <li><a href="market-analysis.html">Market Analysis</a></li>
         </ul>
     </nav>
 
@@ -108,7 +109,7 @@
             },
 
             updateChart() {
-                const labels = this.bids.map((_, i) => "Bid " + (i + 1));
+                const labels = this.bids.map(b =>new Date(b.time * 1000).toLocaleTimeString());
                 const values = this.bids.map(b => b.amount);
 
                 if (this.chart) {
@@ -121,7 +122,8 @@
                         labels: labels,
                         datasets: [{
                             label: "Bid Amount",
-                            data: values
+                            data: values,
+                            tension: 0.3
                         }]
                     }
                 });
