@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Bidding - Hus Index</title>
 
-    <!-- CSS -->
+    
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/live-bidding.css">
 
-    <!-- Libraries -->
+    
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -18,7 +18,7 @@
 <body>
 <div id="app">
 
-    <!-- TOP NAVBAR -->
+    
     <nav class="top-navbar">
         <ul>
             <li><a href="/">Home</a></li>
@@ -27,7 +27,7 @@
         </ul>
     </nav>
 
-    <!-- MAIN NAVBAR -->
+    
     <nav class="navbar">
         <ul>
             <li><a href="properties.html">Properties</a></li>
@@ -38,7 +38,7 @@
         </ul>
     </nav>
 
-    <!-- CONTENT -->
+    
     <div class="content">
         <h1>Live Bidding</h1>
 
@@ -74,7 +74,7 @@ const app = Vue.createApp({
     },
 
     mounted() {
-        // Connect to Flask backend
+        
         this.socket = io("http://127.0.0.1:5000");
 
         // Receive live updates
